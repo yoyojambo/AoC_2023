@@ -3,7 +3,7 @@ from strformat import fmt
 from sugar import `=>`
 
 const
-  width = 140
+  #width = 140
   ignored: set[char] = {'.'} + Digits
 
 type
@@ -16,6 +16,7 @@ var strSeq: seq[string] = stdin
                             .readAll()
                             .splitLines()
 discard strSeq.pop() # Remove remaining "" from EOF
+let width = strSeq[0].len()
 
 proc createSearchArea(strSeq: seq[string], y,x: Natural): SearchArea =
   assert(strSeq[y][x].isDigit, "Passed start for rectangle is not a digit!")
@@ -50,19 +51,16 @@ proc strSliceToInt(str: string, sl: Slice[int]): int =
   let parsed = parseInt(numStr)
   #echo fmt"parsed {parsed}"
   return parsed
-        
+
 proc addGearRatio(strSeq: seq[string], gearSum: var int, y,x: int) =
   var adjacent: seq[int]
-  var chkArray: array[8,bool]  
-  # Array layout is:
-  # 012             
-  # 3*4             
-  # 567
+  var chkArray: array[8,bool]
+
   if y == 0:
-    chkArray[0] = true
-    chkArray[1] = true
-    chkArray[2] = true
-  if y == strSeq.high:
+    chkArray[0] = true # Array layout is:
+    chkArray[1] = true # 012             
+    chkArray[2] = true # 3*4             
+  if y == strSeq.high: # 567             
     chkArray[5] = true
     chkArray[6] = true
     chkArray[7] = true
@@ -70,7 +68,7 @@ proc addGearRatio(strSeq: seq[string], gearSum: var int, y,x: int) =
     chkArray[0] = true
     chkArray[3] = true
     chkArray[5] = true
-  if x == width - 1:
+  if x == strSeq[0].high:
     chkArray[2] = true
     chkArray[4] = true
     chkArray[7] = true
@@ -200,7 +198,11 @@ proc addGearRatio(strSeq: seq[string], gearSum: var int, y,x: int) =
 
   #assert(chkArray.all(b => b), "Not all sides checked!")
   # finally #
-  if adjacent.len == 2: gearSum += adjacent[0] + adjacent[1]
+  echo fmt"adjacent.len = {adjacent.len}"
+  for i, gear in adjacent:
+    echo fmt"gear({y},{x}) #{i} = {gear}"
+
+  if adjacent.len == 2: gearSum += adjacent[0] * adjacent[1]
 
      #[ end of addGearRatio ]#
 
@@ -218,12 +220,13 @@ for y in 0..<len(strSeq):
       if strSeq.isTouchingSymbol(rect):
         res += rect.val
         
-      x = rect.corners[1].x
+      x = rect.corners[1].x - 1
 
     if ch == '*':
       strSeq.addGearRatio(gearSum, y, x)
     inc(x)
 
+echo fmt"Lines = {strSeq.len()}"
 echo fmt"Result = {res}"
 echo fmt"Rects = {rectangleCount}"
 echo fmt"gearSum = {gearSum}"
